@@ -7,13 +7,13 @@ user-invocable: true
 
 # Self-Improvement Through Reflection
 
-Systematically improve by logging retrospectives and implementing concrete changes to skills, subagents, MCPs, plugins, and workflows.
+Systematically improve by logging retrospectives and implementing concrete changes to skills, subagents, MCPs, plugins, scripts, and workflows.
 
 ## Setup
 
-Ensure the retros directory exists:
+Ensure required directories exist:
 ```bash
-mkdir -p .claude/retros
+mkdir -p .claude/retros .claude/scripts
 ```
 
 ## Retro log
@@ -71,7 +71,66 @@ After logging, create the improvement:
 - **Agent:** `.claude/agents/[name].md` - See [creating-agents.md](creating-agents.md)
 - **MCP:** `claude mcp add --transport [type] [name] [url-or-command]`
 - **Plugin:** `[name]/.claude-plugin/plugin.json` - See [creating-plugins.md](creating-plugins.md)
+- **Script:** `.claude/scripts/[name].sh` - See below
 - **Memory:** Update `CLAUDE.md` with patterns or preferences
+
+## Bash Script Library
+
+Build a reusable script library at `.claude/scripts/`. Scripts capture exact command sequences that work.
+
+### When to create a script
+
+| Create a script when... | Don't create a script when... |
+|-------------------------|-------------------------------|
+| Same commands run 3+ times | One-off operation |
+| Command has tricky flags/options | Simple single command |
+| Multi-step sequence must run in order | Steps vary by context |
+| Exact behavior must be reproducible | Flexibility needed |
+
+### Script conventions
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Description: [what this script does]
+# Usage: ./script-name.sh [args]
+# Example: ./script-name.sh input.txt output.csv
+
+# ... script body
+```
+
+**Naming:** `verb-noun.sh` (e.g., `extract-tables.sh`, `validate-config.sh`, `sync-repos.sh`)
+
+### Script catalog
+
+Maintain an index at `.claude/scripts/README.md`:
+
+```markdown
+# Script Library
+
+| Script | Purpose | Usage |
+|--------|---------|-------|
+| extract-tables.sh | Extract tables from PDFs | `./extract-tables.sh input.pdf` |
+| validate-config.sh | Check config files | `./validate-config.sh` |
+```
+
+### Referencing scripts
+
+In retros, link to scripts when they solve a problem:
+```markdown
+### Decisions
+- [x] Create script for PDF table extraction → script
+
+### Implementation status
+- Created `.claude/scripts/extract-tables.sh`
+```
+
+In skills, reference scripts for exact operations:
+```markdown
+## Extract PDF tables
+Run: `.claude/scripts/extract-tables.sh input.pdf`
+```
 
 ### Standalone vs Plugin
 
@@ -93,6 +152,8 @@ After logging a retro, verify:
 3. No vague anti-patterns exist (see below)
 4. Decisions specify the type (skill/agent/mcp/plugin/script/claude.md)
 5. If improvement is reusable across projects, consider plugin instead of standalone
+6. New scripts are added to `.claude/scripts/README.md` catalog
+7. Scripts include description/usage header comments
 
 Run this checklist before considering the retro complete.
 
@@ -144,6 +205,8 @@ Before starting new sessions, check `.claude/retros/log.md` for:
 - Patterns across multiple retros
 - Previously solved problems (don't re-learn)
 
+Also check `.claude/scripts/README.md` for existing scripts before writing new commands.
+
 ## Anti-patterns
 
 | Don't do this | Do this instead |
@@ -153,3 +216,6 @@ Before starting new sessions, check `.claude/retros/log.md` for:
 | Log without implementing | Complete at least one decision per retro |
 | Create skill for one-off task | Only automate recurring patterns |
 | Vague decisions like "improve X" | Concrete: "Create skill that does Y" |
+| Inline complex command sequences | Extract to script when reused |
+| Scripts without documentation | Always include description/usage header |
+| Duplicate scripts for variations | Parameterize with arguments |
