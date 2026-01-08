@@ -1,3 +1,6 @@
 [submodule ".claude/skills/claude-skill-authoring-skill"]
 	path = .claude/skills/claude-skill-authoring-skill
 	url = git@github.com:andrueandersoncs/claude-skill-authoring-skill.git
+[submodule ".claude/skills/--force"]
+	path = .claude/skills/--force
+	url = git@github.com:andrueandersoncs/claude-skill-authoring-skill.git

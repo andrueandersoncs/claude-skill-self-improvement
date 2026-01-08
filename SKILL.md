@@ -7,7 +7,7 @@ user-invocable: true
 
 # Self-Improvement Through Reflection
 
-Systematically improve by logging retrospectives and implementing concrete changes to skills, subagents, MCPs, and workflows.
+Systematically improve by logging retrospectives and implementing concrete changes to skills, subagents, MCPs, plugins, and workflows.
 
 ## Setup
 
@@ -35,7 +35,7 @@ Maintain a persistent log at `.claude/retros/log.md`. See [templates/retro-templ
 - [Specific success worth repeating]
 
 ### Decisions
-- [ ] [Concrete action to take] → [implementation type: skill/agent/mcp/script/claude.md]
+- [ ] [Concrete action to take] → [implementation type: skill/agent/mcp/plugin/script/claude.md]
 
 ### Implementation status
 - [Link to created/updated file, or "pending"]
@@ -61,6 +61,7 @@ Reflection is not summarizing what happened. It's identifying *patterns* that sh
 | Missing external data/tools | Add an MCP server |
 | Project-specific patterns | Update CLAUDE.md |
 | Reusable script needed | Create script in `.claude/scripts/` |
+| Shareable across projects/teams | Create a plugin (bundles skills, agents, commands, hooks) |
 
 ### Step 3: Implement the improvement
 
@@ -69,7 +70,19 @@ After logging, create the improvement:
 - **Skill:** `.claude/skills/[name]/SKILL.md` - See [creating-skills.md](creating-skills.md)
 - **Agent:** `.claude/agents/[name].md` - See [creating-agents.md](creating-agents.md)
 - **MCP:** `claude mcp add --transport [type] [name] [url-or-command]`
+- **Plugin:** `[name]/.claude-plugin/plugin.json` - See [creating-plugins.md](creating-plugins.md)
 - **Memory:** Update `CLAUDE.md` with patterns or preferences
+
+### Standalone vs Plugin
+
+| Use standalone (`.claude/`) | Use plugin |
+|-----------------------------|------------|
+| Single project only | Shared across multiple projects |
+| Personal workflow | Team or community distribution |
+| Quick experiments | Versioned releases |
+| Short command names (`/hello`) | Namespaced commands (`/plugin:hello`) |
+
+Convert standalone to plugin when ready to share: copy files to plugin structure, add `.claude-plugin/plugin.json` manifest.
 
 ## Validation
 
@@ -78,7 +91,8 @@ After logging a retro, verify:
 1. At least one decision is actionable and concrete
 2. Implementation status is updated (link or "pending")
 3. No vague anti-patterns exist (see below)
-4. Decisions specify the type (skill/agent/mcp/script/claude.md)
+4. Decisions specify the type (skill/agent/mcp/plugin/script/claude.md)
+5. If improvement is reusable across projects, consider plugin instead of standalone
 
 Run this checklist before considering the retro complete.
 
