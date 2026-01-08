@@ -1,15 +1,24 @@
 ---
 name: self-improving
 description: Conducts self-reflection and debriefs on task performance. Use after completing significant tasks, at session end, when explicitly asked to reflect, or when encountering repeated difficulties.
+allowed-tools: Read, Write, Glob, Grep, Bash
+user-invocable: true
 ---
 
 # Self-Improvement Through Reflection
 
-This skill enables systematic self-improvement by logging retrospectives and implementing concrete changes to skills, subagents, MCPs, and workflows.
+Systematically improve by logging retrospectives and implementing concrete changes to skills, subagents, MCPs, and workflows.
+
+## Setup
+
+Ensure the retros directory exists:
+```bash
+mkdir -p .claude/retros
+```
 
 ## Retro log
 
-Maintain a persistent log at `.claude/retros/log.md`. Each entry follows this format:
+Maintain a persistent log at `.claude/retros/log.md`. See [templates/retro-template.md](templates/retro-template.md) for a copyable template.
 
 ```markdown
 ## YYYY-MM-DD: [Brief title]
@@ -38,12 +47,10 @@ Reflection is not summarizing what happened. It's identifying *patterns* that sh
 
 ### Step 1: Identify friction points
 
-Ask yourself:
 - Where did I need multiple attempts?
 - Where did the user correct me?
 - What context did I lack that I had to ask for?
 - What repetitive steps could be automated?
-- What knowledge did I need that wasn't available?
 
 ### Step 2: Categorize the gap
 
@@ -55,38 +62,25 @@ Ask yourself:
 | Project-specific patterns | Update CLAUDE.md |
 | Reusable script needed | Create script in `.claude/scripts/` |
 
-### Step 3: Decide what to build
+### Step 3: Implement the improvement
 
-For each friction point, decide:
-1. Is this worth automating? (Will it recur?)
-2. What's the minimum viable solution?
-3. What type of implementation fits best?
+After logging, create the improvement:
 
-### Step 4: Implement the improvement
+- **Skill:** `.claude/skills/[name]/SKILL.md` - See [creating-skills.md](creating-skills.md)
+- **Agent:** `.claude/agents/[name].md` - See [creating-agents.md](creating-agents.md)
+- **MCP:** `claude mcp add --transport [type] [name] [url-or-command]`
+- **Memory:** Update `CLAUDE.md` with patterns or preferences
 
-After logging the retro, actually create the improvement:
+## Validation
 
-**Creating a skill:**
-```
-.claude/skills/[skill-name]/SKILL.md
-```
-See [creating-skills.md](creating-skills.md) for skill structure.
+After logging a retro, verify:
 
-**Creating a subagent:**
-```
-.claude/agents/[agent-name].md
-```
-See [creating-agents.md](creating-agents.md) for agent structure.
+1. At least one decision is actionable and concrete
+2. Implementation status is updated (link or "pending")
+3. No vague anti-patterns exist (see below)
+4. Decisions specify the type (skill/agent/mcp/script/claude.md)
 
-**Adding an MCP:**
-```bash
-claude mcp add --transport [type] [name] [url-or-command]
-```
-
-**Updating project memory:**
-```
-CLAUDE.md  # Add patterns, preferences, or context
-```
+Run this checklist before considering the retro complete.
 
 ## Example retro entry
 
