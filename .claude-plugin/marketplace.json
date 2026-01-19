@@ -1,7 +1,9 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "claude-self-improvement-marketplace",
-  "description": "Self-improvement and cross-session learning plugins for Claude Code",
+  "metadata": {
+    "description": "Self-improvement and cross-session learning plugins for Claude Code"
+  },
   "owner": {
     "name": "Andrue Anderson"
   },
@@ -27,13 +29,7 @@
         "cross-session",
         "memory",
         "meta"
-      ],
-      "features": {
-        "skills": 1,
-        "agents": 1,
-        "commands": 2,
-        "hooks": 2
-      }
+      ]
     }
   ]
 }
