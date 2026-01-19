@@ -1,57 +1,42 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# SessionStart hook: Notify Claude that learnings are available
+# This script runs at session start to inject minimal context
+
 set -euo pipefail
 
-# Description: Load self-improvement context at session start
-# Called by: SessionStart hook
-# Output: Context information for Claude
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+LEARNINGS_DIR="$PROJECT_DIR/.claude/learnings"
 
-# Check if retro infrastructure exists
-retro_exists=false
-error_log_exists=false
-pending_count=0
-recent_errors=0
+# Check if learnings directory exists
+if [ -d "$LEARNINGS_DIR" ]; then
+    # Count learnings in each category (handle missing directories)
+    count_md_files() {
+        local dir="$1"
+        if [ -d "$dir" ]; then
+            find "$dir" -name "*.md" 2>/dev/null | wc -l | tr -d ' '
+        else
+            echo "0"
+        fi
+    }
 
-if [ -f ".claude/retros/log.md" ]; then
-  retro_exists=true
-  # Count pending decisions
-  pending_count=$(grep -c "^\- \[ \]" .claude/retros/log.md 2>/dev/null || echo "0")
+    errors_count=$(count_md_files "$LEARNINGS_DIR/errors")
+    patterns_count=$(count_md_files "$LEARNINGS_DIR/patterns")
+    preferences_count=$(count_md_files "$LEARNINGS_DIR/preferences")
+    improvements_count=$(count_md_files "$LEARNINGS_DIR/improvements")
+    scripts_count=$(count_md_files "$LEARNINGS_DIR/scripts")
+    extensions_count=$(count_md_files "$LEARNINGS_DIR/extensions")
+
+    total=$((errors_count + patterns_count + preferences_count + improvements_count + scripts_count + extensions_count))
+
+    if [ "$total" -gt 0 ]; then
+        echo "[Self-Improvement Context]"
+        echo "This project has $total learnings from previous sessions at .claude/learnings/"
+        echo "Categories: errors($errors_count) patterns($patterns_count) preferences($preferences_count) improvements($improvements_count) scripts($scripts_count) extensions($extensions_count)"
+        echo "Use the cross-session-learning skill when encountering errors or needing project context."
+    fi
+else
+    # No learnings yet - minimal notification
+    echo "[Self-Improvement] No previous learnings found. Session retrospectives will be captured at session end."
 fi
-
-if [ -f ".claude/retros/errors.md" ]; then
-  error_log_exists=true
-  # Count errors in last 7 days (approximate by counting recent entries)
-  recent_errors=$(grep -c "^## [0-9]" .claude/retros/errors.md 2>/dev/null | tail -1 || echo "0")
-fi
-
-# Count existing improvements
-skill_count=$(ls .claude/skills/*/SKILL.md 2>/dev/null | wc -l | tr -d ' ' || echo "0")
-agent_count=$(ls .claude/agents/*.md 2>/dev/null | wc -l | tr -d ' ' || echo "0")
-script_count=$(ls .claude/scripts/*.sh 2>/dev/null | wc -l | tr -d ' ' || echo "0")
-
-# Build context message
-context=""
-
-if [ "$pending_count" -gt 0 ]; then
-  context="${context}📋 ${pending_count} pending improvement decisions in retro log. "
-fi
-
-if [ "$recent_errors" -gt 5 ]; then
-  context="${context}⚠️ ${recent_errors} errors logged - consider reviewing patterns. "
-fi
-
-if [ "$skill_count" -gt 0 ] || [ "$agent_count" -gt 0 ] || [ "$script_count" -gt 0 ]; then
-  context="${context}🛠️ Existing improvements: ${skill_count} skills, ${agent_count} agents, ${script_count} scripts. "
-fi
-
-if [ -z "$context" ]; then
-  if [ "$retro_exists" = false ]; then
-    context="💡 Self-improvement plugin active. Run /retro after tasks to capture learnings."
-  else
-    context="✅ Self-improvement plugin active. No pending items."
-  fi
-fi
-
-# Output context for Claude
-echo "{\"systemMessage\": \"${context}\"}"
 
 exit 0

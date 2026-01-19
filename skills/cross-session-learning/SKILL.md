@@ -1,148 +1,179 @@
 ---
-name: cross-session-learning
-description: This skill should be used when reviewing patterns across multiple sessions, asked to "analyze past retros", "what patterns do you see", "review learning history", "check past sessions", or when starting a new session to load prior learnings. Provides cross-session pattern detection and knowledge synthesis.
-version: 1.0.0
+name: Cross-Session Learning
+description: This skill should be used when encountering an error or issue that may have been seen before, when starting work on a complex task that could benefit from past learnings, when the user asks about "project patterns", "how does this project work", "what have we learned", "past issues", or "previous sessions". Provides guidance on reading and applying learnings stored in .claude/learnings/.
+version: 0.1.0
 ---
 
-# Cross-Session Learning and Pattern Detection
+# Cross-Session Learning
 
-Analyze retrospective history to identify recurring patterns, track improvement effectiveness, and ensure learnings persist across sessions.
+Enable learning from past sessions by reading and applying stored knowledge from the project's `.claude/learnings/` directory.
 
-## Session Start Checklist
+## Purpose
 
-At the beginning of each session, review:
+This skill teaches how to access and apply learnings accumulated from previous sessions, including:
+- Recurring errors and their solutions
+- Successful patterns and approaches
+- User preferences for this project
+- Improvement ideas and pending enhancements
+- Useful scripts for common tasks
+- Ideas for new agents and skills
 
-### 1. Pending Implementations
+## When to Use
 
-```bash
-grep -A2 "^\- \[ \]" .claude/retros/log.md
+Activate this skill when:
+- An error occurs that may have been encountered before
+- Starting a complex task where past learnings could help
+- The user asks about project context or patterns
+- Planning an approach that could benefit from historical insight
+
+## Learnings Directory Structure
+
+Project learnings are stored in `.claude/learnings/` with one markdown file per learning:
+
+```
+.claude/learnings/
+├── errors/           # Recurring errors and solutions
+│   └── {error-name}.md
+├── patterns/         # Successful approaches
+│   └── {pattern-name}.md
+├── preferences/      # User preferences
+│   └── {preference-name}.md
+├── improvements/     # Pending improvement ideas
+│   └── {improvement-name}.md
+├── scripts/          # Useful reusable scripts
+│   └── {script-name}.md
+└── extensions/       # Ideas for agents/skills
+    └── {extension-name}.md
 ```
 
-Address uncompleted decisions before starting new work.
+## Reading Learnings
 
-### 2. Recent Patterns
+### Check for Relevant Learnings
 
-Check last 5 retros for recurring themes:
-```bash
-tail -200 .claude/retros/log.md | grep "### What went wrong" -A3
-```
-
-### 3. Error Trends
-
-Review recent errors:
-```bash
-tail -50 .claude/retros/errors.md | grep "^## " | tail -5
-```
-
-### 4. Existing Resources
-
-Before creating new improvements, check what exists:
-- `.claude/skills/` - existing skills
-- `.claude/agents/` - existing agents
-- `.claude/scripts/README.md` - script catalog
-
-## Pattern Detection
-
-### Identifying Recurring Issues
-
-An issue is recurring if it appears in 3+ retros. Search for:
+Before starting work, check if relevant learnings exist:
 
 ```bash
-# Find repeated "What went wrong" themes
-grep -h "What went wrong" -A5 .claude/retros/log.md | \
-  grep "^-" | sort | uniq -c | sort -rn | head -10
+# List all learnings
+ls -la .claude/learnings/*/
+
+# Check specific category
+ls .claude/learnings/errors/
 ```
 
-### Tracking Improvement Effectiveness
+### Search for Relevant Content
 
-After implementing an improvement, track if the problem recurs:
+Use grep to find learnings matching the current context:
+
+```bash
+# Search for learnings related to a specific topic
+grep -r "TypeScript" .claude/learnings/
+grep -r "async" .claude/learnings/errors/
+```
+
+### Read Specific Learnings
+
+When a relevant learning is found, read its full content to apply the knowledge.
+
+## Learning File Format
+
+Each learning file follows a structured markdown format:
 
 ```markdown
-## Improvement Tracking
+---
+created: YYYY-MM-DD
+last_updated: YYYY-MM-DD
+source_session: retros/YYYY-MM-DD-HHmm.md
+tags: [tag1, tag2]
+---
 
-| Improvement | Created | Problem Recurred? | Notes |
-|-------------|---------|-------------------|-------|
-| pdf-extraction skill | 2025-01-08 | No | Working well |
-| validate-input script | 2025-01-10 | Yes (1x) | Needs refinement |
+# {Learning Title}
+
+## Context
+When this learning applies and how it was discovered.
+
+## Key Insight
+The core takeaway or solution.
+
+## Application
+How to apply this learning in practice.
+
+## Related
+Links to related learnings or external resources.
 ```
 
-Maintain this in `.claude/retros/improvements.md`.
+## Applying Learnings
 
-### Pattern Categories
+### For Errors
 
-| Pattern Type | Indicator | Action |
-|--------------|-----------|--------|
-| **Knowledge gap** | Same question asked 3+ times | Create skill |
-| **Workflow friction** | Same multi-step process repeated | Create agent |
-| **Tool misuse** | Same tool error repeated | Add to skill or script |
-| **Context missing** | Same info requested repeatedly | Update CLAUDE.md |
-| **Script gap** | Same commands typed repeatedly | Create script |
+When encountering an error:
+1. Search `.claude/learnings/errors/` for similar errors
+2. If found, read the solution and apply it
+3. If not found, solve the error and consider creating a new learning
 
-## Synthesis Reports
+### For Patterns
 
-### Weekly Summary
+When implementing a feature:
+1. Check `.claude/learnings/patterns/` for relevant approaches
+2. Apply successful patterns from past sessions
+3. Adapt patterns to current context
 
-Generate a weekly learning summary:
+### For Preferences
 
-```markdown
-## Week of YYYY-MM-DD
+Before making style or approach decisions:
+1. Check `.claude/learnings/preferences/` for user preferences
+2. Follow established preferences unless explicitly overridden
 
-### Retros Completed: N
+### For Scripts
 
-### Top Issues
-1. [Most common friction point]
-2. [Second most common]
-3. [Third most common]
+When performing repetitive tasks:
+1. Check `.claude/learnings/scripts/` for existing utilities
+2. Use existing scripts instead of rewriting
+3. Store new useful scripts for future sessions
 
-### Improvements Made
-- [x] [Improvement 1]
-- [x] [Improvement 2]
+## Creating New Learnings
 
-### Pending
-- [ ] [Still needs implementation]
+When a new insight emerges during a session:
 
-### Patterns to Watch
-- [Emerging pattern not yet addressed]
+1. Determine the category (errors, patterns, preferences, improvements, scripts, extensions)
+2. Create a descriptive kebab-case filename
+3. Follow the learning file format
+4. Include source context from the current session
+
+Example creation:
+```bash
+# Create new error learning
+mkdir -p .claude/learnings/errors
 ```
 
-### Improvement ROI
+Then write a learning file with the standard format.
 
-Track which improvements provide most value:
+## Best Practices
 
-| Improvement | Times Useful | Errors Prevented | Worth It? |
-|-------------|--------------|------------------|-----------|
-| pdf-skill | 12 | 8 | Yes |
-| validate.sh | 3 | 2 | Yes |
-| temp-agent | 1 | 0 | Remove |
+### Efficient Discovery
+- Start with targeted searches rather than reading everything
+- Use grep to filter by keywords before reading full files
+- Check the most relevant category first
 
-Remove low-value improvements to reduce complexity.
+### Maintaining Quality
+- Learnings should be actionable, not just observations
+- Include enough context to understand when to apply
+- Keep learnings focused - one insight per file
+- Update existing learnings rather than creating duplicates
 
-## Cross-Session Memory
+### Cross-Referencing
+- Reference related learnings in the "Related" section
+- Link to source retrospectives for full context
+- Tag learnings for easier discovery
 
-### What to Remember
+## Integration with Retrospectives
 
-Persist across sessions in CLAUDE.md:
-- User preferences discovered through corrections
-- Project-specific patterns
-- Tool combinations that work well
-- Common gotchas for this codebase
-
-### What NOT to Persist
-
-Avoid cluttering memory with:
-- One-time decisions
-- Temporary workarounds
-- Session-specific context
+Learnings are extracted from session retrospectives stored in `.claude/retros/`. When reviewing learnings:
+- Check the `source_session` frontmatter to find the original context
+- Read the source retrospective for additional detail if needed
 
 ## Additional Resources
 
 ### Reference Files
 
-- **`references/pattern-queries.md`** - Advanced grep/awk queries for pattern detection
-- **`references/synthesis-templates.md`** - Templates for summary reports
-
-### Scripts
-
-- **`${CLAUDE_PLUGIN_ROOT}/scripts/generate-weekly-summary.sh`** - Create weekly learning report
-- **`${CLAUDE_PLUGIN_ROOT}/scripts/find-recurring-issues.sh`** - Detect patterns across retros
-- **`${CLAUDE_PLUGIN_ROOT}/scripts/track-improvement-usage.sh`** - Monitor improvement effectiveness
+For detailed category-specific guidance:
+- **`references/category-formats.md`** - Detailed format for each learning category

@@ -1,17 +1,9 @@
 {
   "name": "claude-self-improvement",
-  "version": "1.0.0",
-  "description": "Enable Claude Code to systematically improve itself through reflection, error tracking, cross-session learning, and autonomous implementation of skills, agents, and scripts.",
+  "version": "0.1.0",
+  "description": "Enables Claude Code to introspect sessions and learn from experience through retrospectives, pattern recognition, and cross-session knowledge persistence",
   "author": {
-    "name": "Andrue Anderson",
-    "email": "andrue@example.com"
+    "name": "Andrue Anderson"
   },
-  "keywords": [
-    "self-improvement",
-    "reflection",
-    "retrospective",
-    "error-tracking",
-    "learning",
-    "autonomous"
-  ]
+  "keywords": ["self-improvement", "retrospective", "learning", "meta", "introspection"]
 }

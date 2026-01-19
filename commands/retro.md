@@ -1,87 +1,35 @@
 ---
-description: Conduct a self-improvement retrospective on the current session
-allowed-tools: Read, Write, Glob, Grep, Bash
-argument-hint: [optional-title]
+description: Run a retrospective analysis on the current session
+argument-hint: [focus-area]
+allowed-tools: Read, Write, Grep, Glob, Bash
 ---
 
-Conduct a structured self-improvement retrospective for this session.
+Perform a retrospective analysis of this session to capture learnings.
 
-## Setup
+**Focus Area:** $ARGUMENTS
 
-Ensure infrastructure exists:
-```bash
-mkdir -p .claude/retros .claude/scripts .claude/skills .claude/agents
-```
+If a focus area is specified (errors, patterns, preferences, improvements, scripts, extensions), concentrate analysis on that category. Otherwise, analyze all aspects.
 
-## Reflection Process
+**Process:**
 
-### 1. Identify Friction Points
+1. Review what was accomplished in this session
+2. Identify errors encountered and how they were resolved
+3. Note successful patterns and approaches used
+4. Observe any user preferences expressed or implied
+5. Look for improvements that could be made
+6. Identify useful scripts created
+7. Consider ideas for new agents or skills
 
-Review the session and identify:
-- Where multiple attempts were needed
-- Where the user provided corrections
-- What context was missing that required asking
-- What repetitive steps could be automated
-- What errors occurred
+**Storage:**
 
-### 2. Check Error Log
+Create necessary directories and files in `.claude/`:
+- Write retrospective to `.claude/retros/` with timestamp filename
+- Write individual learnings to `.claude/learnings/{category}/` subdirectories
+- Use one markdown file per learning with descriptive kebab-case filenames
 
-Review recent errors if available:
-```bash
-tail -30 .claude/retros/errors.md 2>/dev/null || echo "No error log yet"
-```
+**Before writing:**
+- Check existing learnings to avoid duplicates
+- Update existing learnings rather than creating new duplicates
 
-### 3. Log the Retrospective
-
-Append a new entry to `.claude/retros/log.md` with this format:
-
-```markdown
-## [Today's Date]: $ARGUMENTS
-
-### Context
-- [1-2 sentence task summary]
-- [User's goal]
-
-### What went wrong
-- [Specific failures or inefficiencies]
-- [Root causes]
-
-### What went well
-- [Successes worth repeating]
-
-### Decisions
-- [ ] [Concrete action] → [skill/agent/script/mcp/claude.md]
-
-### Implementation status
-- pending
-```
-
-If $ARGUMENTS is empty, use a brief descriptive title based on the session.
-
-### 4. Validate Entry
-
-Before finishing, verify:
-1. At least one decision is actionable and concrete
-2. Decisions specify implementation type
-3. No vague anti-patterns ("be more careful", "everything went well")
-
-### 5. Implement at Least One Decision
-
-After logging, implement at least one pending decision:
-- **Skill:** Create `.claude/skills/[name]/SKILL.md`
-- **Agent:** Create `.claude/agents/[name].md`
-- **Script:** Create `.claude/scripts/[name].sh` and update catalog
-- **CLAUDE.md:** Add pattern or preference
-
-Reference the self-improving skill for implementation details.
-
-### 6. Update Implementation Status
-
-After creating improvements, update the retro entry's implementation status with links to created files.
-
-## Tips
-
-- Focus on patterns, not just events
-- Be specific about what failed and why
-- Propose preventive measures, not just fixes
-- If unsure what to improve, create a script for a repeated command sequence
+**Output:**
+Summarize what was captured and where files were written.

@@ -1,194 +1,154 @@
 # Claude Self-Improvement Plugin
 
-A comprehensive Claude Code plugin that enables systematic self-improvement through reflection, error tracking, cross-session learning, and autonomous implementation of skills, agents, and scripts.
+A Claude Code plugin that enables session introspection and cross-session learning. Claude automatically captures learnings at the end of each session and applies them in future sessions.
 
 ## Features
 
-### 🔄 Structured Retrospectives
-- Conduct post-task reflections to identify friction points
-- Log learnings persistently at `.claude/retros/log.md`
-- Categorize gaps and map to appropriate solutions
-
-### 🔍 Error Tracking & Diagnosis
-- Automatic error logging via PostToolUse hooks
-- Pattern detection across tool failures
-- Root cause analysis and prevention strategies
-
-### 📊 Cross-Session Learning
-- Analyze patterns across multiple retrospectives
-- Track improvement effectiveness over time
-- Generate weekly summary reports
-
-### 🤖 Autonomous Improvement
-- Agents that create skills, agents, and scripts automatically
-- Scaffold templates for rapid improvement creation
-- Proactive triggers for reflection at session boundaries
+- **Automatic Retrospectives**: Session end hook triggers analysis of errors, patterns, and insights
+- **Cross-Session Learning**: Learnings persist in `.claude/learnings/` for future sessions
+- **Proactive Context Loading**: Session start hook notifies Claude of available learnings
+- **Manual Controls**: Commands for on-demand retrospectives and learning review
 
 ## Installation
 
-### As a Plugin
-
 ```bash
-# Clone the repository
-git clone git@github.com:andrueandersoncs/claude-self-improvement.git
+# Install via plugin directory
+claude --plugin-dir /path/to/claude-self-improvement
 
-# Install as plugin
-claude plugin add ./claude-self-improvement
-
-# Or test locally
-cc --plugin-dir ./claude-self-improvement
+# Or copy to your project
+cp -r claude-self-improvement /your/project/.claude-plugin/
 ```
 
-### Plugin Structure
+## Commands
+
+### /retro [focus-area]
+
+Run a retrospective analysis on the current session.
 
 ```
-claude-self-improvement/
-├── .claude-plugin/
-│   └── plugin.json           # Plugin manifest
-├── skills/
-│   ├── self-improving/       # Core reflection skill
-│   ├── error-diagnosis/      # Error analysis skill
-│   └── cross-session-learning/ # Pattern detection skill
-├── commands/
-│   ├── retro.md              # /retro - Manual reflection
-│   ├── review-retros.md      # /review-retros - Pattern analysis
-│   └── implement-pending.md  # /implement-pending - Create improvements
-├── agents/
-│   ├── retro-analyzer.md     # Analyzes retro history
-│   └── improvement-implementer.md # Creates improvements autonomously
-├── hooks/
-│   ├── hooks.json            # Hook configuration
-│   └── scripts/              # Hook scripts
-└── scripts/                  # Utility scripts
+/retro              # Analyze all aspects
+/retro errors       # Focus on errors encountered
+/retro patterns     # Focus on successful patterns
 ```
 
-## Usage
+### /review-retros [category|search-term]
 
-### Commands
+Browse and search past retrospectives and learnings.
 
-| Command | Description |
-|---------|-------------|
-| `/retro [title]` | Conduct a retrospective on the current session |
-| `/review-retros [days\|all]` | Analyze patterns across retro history |
-| `/implement-pending [type\|all]` | Implement pending improvement decisions |
-
-### Automatic Triggers
-
-The plugin automatically suggests reflection when:
-- **SessionEnd**: Prompts for retro if friction occurred
-- **Stop**: Suggests capturing learnings after significant tasks
-- **PostToolUse**: Logs errors for later analysis
-
-### Skills
-
-Skills activate automatically based on context:
-
-- **self-improving**: Triggers on "thanks", "done", "reflect", or after difficulties
-- **error-diagnosis**: Triggers when analyzing failures or error patterns
-- **cross-session-learning**: Triggers when reviewing history or starting sessions
-
-### Agents
-
-Agents can be invoked via the Task tool:
-
-- **retro-analyzer**: Deep analysis of retrospective patterns
-- **improvement-implementer**: Autonomous creation of improvements
+```
+/review-retros              # Show summary of all learnings
+/review-retros errors       # List all error learnings
+/review-retros typescript   # Search for "typescript" across learnings
+/review-retros 2024-01-15   # Show retrospectives from that date
+```
 
 ## How It Works
 
-### 1. Reflection Workflow
+### Session Start
+
+The `SessionStart` hook runs `load-context.sh` which:
+1. Checks if `.claude/learnings/` exists
+2. Counts learnings in each category
+3. Outputs a brief notification to Claude about available learnings
+
+Example output:
+```
+[Self-Improvement Context]
+This project has 12 learnings from previous sessions at .claude/learnings/
+Categories: errors(3) patterns(4) preferences(2) improvements(1) scripts(1) extensions(1)
+Use the cross-session-learning skill when encountering errors or needing project context.
+```
+
+### Session End
+
+The `Stop` hook triggers the `retro-analyzer` agent which:
+1. Analyzes the session for valuable insights
+2. Categorizes findings into learning types
+3. Writes retrospective to `.claude/retros/`
+4. Writes individual learnings to `.claude/learnings/{category}/`
+
+### During Session
+
+The `cross-session-learning` skill activates when Claude:
+- Encounters an error that may have been seen before
+- Starts a complex task that could benefit from past learnings
+- Hears keywords like "project patterns", "past issues", "previous sessions"
+
+## Directory Structure
+
+Learnings are stored in your project's `.claude/` directory:
 
 ```
-Task Completion → Identify Friction → Categorize Gap → Log Retro → Implement Improvement
+.claude/
+├── retros/                      # Session retrospectives
+│   └── 2024-01-15-1423.md
+└── learnings/
+    ├── errors/                  # Recurring errors + solutions
+    │   └── typescript-strict-null-checks.md
+    ├── patterns/                # Successful approaches
+    │   └── effect-error-handling.md
+    ├── preferences/             # User preferences
+    │   └── testing-approach.md
+    ├── improvements/            # Improvement ideas queue
+    │   └── add-retry-logic.md
+    ├── scripts/                 # Useful reusable scripts
+    │   └── find-unused-exports.md
+    └── extensions/              # Agent/skill ideas
+        └── agent-test-generator.md
 ```
 
-### 2. Gap Categories
+## Learning Categories
 
-| Gap Type | Solution | Location |
-|----------|----------|----------|
-| Missing knowledge | Create skill | `.claude/skills/` |
-| Repetitive workflow | Create agent | `.claude/agents/` |
-| Missing external data | Add MCP server | `claude mcp add` |
-| Project patterns | Update memory | `CLAUDE.md` |
-| Repeated commands | Create script | `.claude/scripts/` |
+| Category | Purpose | Example |
+|----------|---------|---------|
+| **errors** | Recurring errors and their solutions | TypeScript strict mode issues |
+| **patterns** | Successful approaches to repeat | Effect-TS error handling pattern |
+| **preferences** | User's expressed preferences | Prefers bun over jest |
+| **improvements** | Ideas for future enhancements | Add retry logic to API calls |
+| **scripts** | Useful scripts to preserve | Find unused exports |
+| **extensions** | Ideas for new agents/skills | Test generator agent |
 
-### 3. Error Tracking
+## Learning File Format
 
-Errors are automatically logged to `.claude/retros/errors.md`:
-- Tool name and input
-- Error message and category
-- Resolution status
-- Prevention recommendations
-
-### 4. Cross-Session Learning
-
-The plugin maintains awareness across sessions:
-- Loads pending decisions at session start
-- Detects recurring issues (3+ occurrences)
-- Tracks improvement effectiveness
-
-## Example Retro Entry
+Each learning follows a structured format:
 
 ```markdown
-## 2025-01-15: API Integration Task
+---
+created: 2024-01-15
+last_updated: 2024-01-15
+source_session: retros/2024-01-15-1423.md
+tags: [typescript, error, strict-mode]
+---
 
-### Context
-- User needed to integrate Stripe payment processing
-- Goal: implement checkout flow with webhooks
+# TypeScript Strict Null Checks
 
-### What went wrong
-- Forgot idempotency keys initially
-- Webhook signature verification failed (raw body issue)
-- Had to look up Stripe docs multiple times
+## Context
+When this applies and how it was discovered.
 
-### What went well
-- Test mode made iteration safe
-- Comprehensive error handling appreciated
+## Key Insight
+The core solution or takeaway.
 
-### Decisions
-- [x] Create Stripe integration skill → skill
-- [x] Create webhook testing script → script
-- [ ] Add API keys to env template → claude.md
+## Application
+How to apply this in practice.
 
-### Implementation status
-- Created `.claude/skills/integrating-stripe/SKILL.md`
-- Created `.claude/scripts/test-stripe-webhook.sh`
+## Related
+Links to related learnings.
 ```
 
-## Utility Scripts
+## Components
 
-| Script | Purpose |
-|--------|---------|
-| `parse-retro-log.sh` | Extract and summarize retro information |
-| `parse-error-log.sh` | Analyze error patterns |
-| `scaffold-improvement.sh` | Generate improvement templates |
-| `generate-weekly-summary.sh` | Create weekly learning reports |
-
-## Reference Documentation
-
-The `skills/*/references/` directories contain detailed documentation:
-- Improvement type guides
-- Real-world examples
-- Pattern detection queries
-- Common error solutions
+| Component | Type | Purpose |
+|-----------|------|---------|
+| `cross-session-learning` | Skill | How to read and apply stored learnings |
+| `retro-analyzer` | Agent | Analyzes sessions and extracts learnings |
+| `/retro` | Command | Manual retrospective |
+| `/review-retros` | Command | Browse past learnings |
+| `SessionStart` hook | Hook | Load context notification |
+| `Stop` hook | Hook | Trigger automatic retrospective |
 
 ## Configuration
 
-### Hooks
-
-Hooks are configured in `hooks/hooks.json`:
-- **SessionEnd**: Prompt for retro
-- **PostToolUse**: Log errors
-- **Stop**: Suggest reflection
-- **SessionStart**: Load context
-
-### Customization
-
-Edit hook configurations to adjust:
-- Trigger sensitivity
-- Error categories
-- Prompt content
-- Timeout values
+No configuration required. Learnings are stored in your project's `.claude/` directory automatically.
 
 ## License
 

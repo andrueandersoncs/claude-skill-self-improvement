@@ -1,25 +1,13 @@
 {
-  "description": "Self-improvement hooks for reflection triggers and error tracking",
+  "description": "Self-improvement hooks for session introspection and learning",
   "hooks": {
-    "SessionEnd": [
+    "SessionStart": [
       {
         "matcher": "*",
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "The session is ending. Review the session for potential retrospective:\n\n1. Were there any friction points (multiple attempts, corrections, missing context)?\n2. Did any tool calls fail or require retries?\n3. Was there a significant multi-step task completed?\n\nIf YES to any:\n- Remind the user: 'Would you like me to do a quick retro before we end? Run /retro to capture learnings.'\n- Return: {\"decision\": \"block\", \"reason\": \"Suggesting retrospective\"}\n\nIf NO to all (trivial session, no friction):\n- Return: {\"decision\": \"approve\"}",
-            "timeout": 15
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Bash|Write|Edit|Read",
-        "hooks": [
-          {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/log-error.sh",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/load-context.sh",
             "timeout": 5
           }
         ]
@@ -31,20 +19,8 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Before completing, consider:\n\n1. Did this task involve 3+ tool calls or attempts?\n2. Did the user provide any corrections during this task?\n3. Was there anything that took longer than expected?\n4. Did you learn something that should be captured?\n\nIf YES to any and a retro hasn't been done recently:\n- Suggest: 'This task had some learnings worth capturing. Consider /retro to log them.'\n- Return: {\"decision\": \"approve\", \"systemMessage\": \"Consider suggesting /retro for learnings\"}\n\nOtherwise:\n- Return: {\"decision\": \"approve\"}",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/load-context.sh",
-            "timeout": 10
+            "prompt": "Before ending, run a session retrospective to capture learnings. Use the retro-analyzer agent to analyze this session and write findings to .claude/retros/ and .claude/learnings/. Create necessary directories if they don't exist. Focus on: errors encountered, patterns used, preferences observed, improvements identified, useful scripts created, and ideas for new agents or skills. Keep learnings actionable and avoid duplicating existing learnings.",
+            "timeout": 120
           }
         ]
       }
